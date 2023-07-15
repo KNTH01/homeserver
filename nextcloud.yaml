@@ -1,0 +1,25 @@
+version: "3"
+  
+services:
+  nextcloud:
+    image: lscr.io/linuxserver/nextcloud:latest
+    container_name: nextcloud
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/CEST
+    volumes:
+      - /home/knth/docker/config/nextcloud/appdata:/config
+      - /home/knth/nextcloud-data:/data
+    ports:
+      - 443:443
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.zenylium.xyz`)"
+      - "traefik.http.routers.nextcloud.entrypoints=websecure"
+networks:
+  proxy:
+    external: true

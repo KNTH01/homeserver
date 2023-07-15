@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  homeassistant:
+    image: lscr.io/linuxserver/homeassistant:latest
+    container_name: homeassistant
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/CEST
+    volumes:
+      - /home/knth/docker/config/home-assistant/config:/config
+    ports:
+      - 8123:8123 
+    # devices:
+    #   - /path/to/device:/path/to/device #optional
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homeassistant.rule=Host(`ha.zenylium.xyz`)"
+      - "traefik.http.routers.homeassistant.entrypoints=websecure"
+
+networks:
+  proxy:
+    external: true

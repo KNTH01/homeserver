@@ -1,0 +1,25 @@
+version: "3.3"
+  
+services:
+  homepage:
+    image: ghcr.io/benphelps/homepage:latest
+    container_name: homepage
+    ports:
+      - 3000:3000
+    volumes:
+      - /home/knth/docker/config/homepage:/app/config # Make sure your local config directory exists
+      - /var/run/docker.sock:/var/run/docker.sock # (optional) For docker integrations, see alternative methods
+    environment:
+      PUID: 1000
+      PGID: 1000
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=Host(`homepage.zenylium.xyz`)"
+      - "traefik.http.routers.homepage.entrypoints=websecure"
+
+networks:
+  proxy:
+    external: true

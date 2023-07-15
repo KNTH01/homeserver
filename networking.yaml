@@ -1,0 +1,101 @@
+version: "3"
+
+networks:
+  proxy:
+    external: true
+  ipvlan_l2:
+    name: ipvlan_l2
+    external: true
+
+services:
+  # More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+  pihole:
+    depends_on: [unbound]
+    hostname: pihole
+    container_name: pihole
+    image: pihole/pihole:latest
+    networks:
+      ipvlan_l2: 
+        ipv4_address: 192.168.1.200
+    environment:
+      TZ: 'Europe/Andorra'
+      # WEBPASSWORD: 'set a secure password here or it will be random'
+    volumes:
+      - '/home/knth/docker/config/pihole/etc-pihole:/etc/pihole'
+      - '/home/knth/docker/config/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+    cap_add: # https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+      - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pihole.rule=Host(`pihole.zenylium.xyz`)"
+      - "traefik.http.routers.pihole.entrypoints=websecure"
+      - "traefik.http.services.pihole.loadbalancer.server.port=80"
+
+  bind9:
+    container_name: bind9
+    image: ubuntu/bind9:latest
+    environment:
+      - BIND9_USER=root
+      - TZ=Europe/Andorra
+    networks:
+      ipvlan_l2: 
+        ipv4_address: 192.168.1.205
+    volumes:
+      - /home/knth/docker/config/bind9/config:/etc/bind
+      - /home/knth/docker/config/bind9/cache:/var/cache/bind
+      - /home/knth/docker/config/bind9/records:/var/lib/bind
+    restart: unless-stopped
+
+  unbound:
+    image: mvance/unbound:latest
+    container_name: unbound
+    restart: unless-stopped
+    hostname: unbound
+    networks:
+      ipvlan_l2: 
+        ipv4_address: 192.168.1.201
+    # volumes:
+    #   - '/home/knth/docker/config/unbound:/opt/unbound/etc/unbound'
+
+  nginxproxymanager:
+    image: 'jc21/nginx-proxy-manager:latest' 
+    container_name: nginxproxymanager
+    restart: unless-stopped 
+    networks:
+      ipvlan_l2: 
+        ipv4_address: 192.168.1.203
+    volumes:
+      - /home/knth/docker/config/nginxproxymanager/data:/data
+      - /home/knth/docker/config/nginxproxymanager/letsencrypt:/etc/letsencrypt 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.npm.rule=Host(`npm.zenylium.xyz`)"
+      - "traefik.http.routers.npm.entrypoints=websecure"
+      - "traefik.http.services.npm.loadbalancer.server.port=81"
+
+  traefik:
+    container_name: traefik
+    # The official v2 Traefik docker image
+    image: traefik:v2.10
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --providers.docker
+    networks:
+      ipvlan_l2: 
+        ipv4_address: 192.168.1.210
+      proxy: {}
+    volumes:
+      - /home/knth/docker/config/traefik:/etc/traefik
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    environment:
+      - "PORKBUN_API_KEY=pk1_512d4af93cf2a9d0351a6e854520c57423aadc3ed4431def4cb8a2084c7dab0c"
+      - "PORKBUN_SECRET_API_KEY=sk1_95bae60c4bcdd1c4ddaf1259df381800d2b001da911ab627798be96ec375da58"
+      - "PORKBUN_PROPAGATION_TIMEOUT=120"
+      # - "LEGO_DISABLE_CNAME_SUPPORT=true" 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.zenylium.xyz`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
