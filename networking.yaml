@@ -89,8 +89,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
     environment:
-      - "PORKBUN_API_KEY=pk1_512d4af93cf2a9d0351a6e854520c57423aadc3ed4431def4cb8a2084c7dab0c"
-      - "PORKBUN_SECRET_API_KEY=sk1_95bae60c4bcdd1c4ddaf1259df381800d2b001da911ab627798be96ec375da58"
+      - "PORKBUN_API_KEY=${PORKBUN_API_KEY}"
+      - "PORKBUN_SECRET_API_KEY=${PORKBUN_SECRET_API_KEY}"
       - "PORKBUN_PROPAGATION_TIMEOUT=120"
       # - "LEGO_DISABLE_CNAME_SUPPORT=true" 
     labels:
