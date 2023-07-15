@@ -78,8 +78,6 @@ services:
     container_name: traefik
     # The official v2 Traefik docker image
     image: traefik:v2.10
-    # Enables the web UI and tells Traefik to listen to docker
-    command: --api.insecure=true --providers.docker
     networks:
       ipvlan_l2: 
         ipv4_address: 192.168.1.210
