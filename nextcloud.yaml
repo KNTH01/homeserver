@@ -20,6 +20,13 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.zenylium.xyz`)"
       - "traefik.http.routers.nextcloud.entrypoints=websecure"
+      - "traefik.http.middlewares.nextcloud_redirectregex.redirectregex.permanent=true"
+      - "traefik.http.middlewares.nextcloud_redirectregex.redirectregex.regex=`https://(.*)/.well-known/(?:card|cal)dav`"
+      - "traefik.http.middlewares.nextcloud_redirectregex.redirectregex.replacement=`https://$${1}/remote.php/dav`"
+      - "traefik.http.routers.nextcloud.middlewares=nextcloud_redirectregex"
+      - "traefik.http.services.nextcloud.loadbalancer.server.port=443"
+      - "traefik.http.services.nextcloud.loadbalancer.server.scheme=https" # else: Client sent an HTTP request to an HTTPS server.
+  
 networks:
   proxy:
     external: true
