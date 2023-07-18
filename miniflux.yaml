@@ -1,0 +1,32 @@
+version: '3.3'
+  
+services:
+  miniflux:
+    image: miniflux/miniflux:latest
+    container_name: miniflux
+    ports:
+      - "804:8080"
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://$MINIFLUX_POSTGRES_USER:$MINIFLUX_POSTGRES_PASSWORD@db_postgres/$MINIFLUX_POSTGRES_DBNAME?sslmode=disable
+      - RUN_MIGRATIONS=1
+      - CREATE_ADMIN=1
+      - ADMIN_USERNAME=$MINIFLUX_USER
+      - ADMIN_PASSWORD=$MINIFLUX_PASSWORD
+      - POLLING_FREQUENCY=30
+      - POCKET_CONSUMER_KEY=$MINIFLUX_POCKET_APIKEY
+      - "BASE_URL=https://miniflux.zenylium.zyx"
+      - "DEBUG=on"
+    networks:
+      - docker_db_postgres 
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.miniflux.rule=Host(`miniflux.zenylium.xyz`)"
+      - "traefik.http.routers.miniflux.entrypoints=websecure"
+        
+networks:
+  docker_db_postgres:
+    external: true
+  proxy:
+    external: true

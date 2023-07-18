@@ -1,0 +1,48 @@
+version: "3"
+  
+services:
+  db_postgres: 
+    image: postgres:latest
+    restart: always
+    container_name: db_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    volumes:
+      - db_postgres_data:/var/lib/postgresql/data
+    networks:
+      - db_postgres 
+        
+  pgadmin:
+    depends_on:
+      - db_postgres
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin4
+    restart: unless-stopped
+    ports:
+      - "5433:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: $PG_ADMIN_DEFAULT_EMAIL
+      PGADMIN_DEFAULT_PASSWORD: $POSTGRES_PASSWORD
+      PUID: 1000
+      PGID: 1000
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - db_postgres 
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.zenylium.xyz`)"
+      - "traefik.http.routers.pgadmin.entrypoints=websecure"
+
+volumes:
+  db_postgres_data:
+  pgadmin_data:
+    
+networks:
+  db_postgres:
+  proxy:
+    external: true
