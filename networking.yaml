@@ -41,6 +41,7 @@ services:
     networks:
       ipvlan_l2: 
         ipv4_address: 192.168.1.205
+      proxy: {}
     volumes:
       - /home/knth/docker/config/bind9/config:/etc/bind
       - /home/knth/docker/config/bind9/cache:/var/cache/bind
