@@ -1,0 +1,29 @@
+version: '3.3'
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    volumes:
+      - /home/knth/docker/config/uptime-kuma/appdata:/app/data
+    ports:
+      - 3001:3001  # <Host Port>:<Container Port>
+    restart: always
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.uptime-kuma.entrypoints=websecure"
+      - "traefik.http.routers.uptime-kuma.rule=Host(`uptime-kuma.zenylium.xyz`)"
+      - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"
+      # - "traefik.http.middlewares.nextcloud_redirectregex.redirectregex.permanent=true"
+      # - "traefik.http.middlewares.nextcloud_redirectregex.redirectregex.regex=`https://(.*)/.well-known/(?:card|cal)dav`"
+      # - "traefik.http.middlewares.nextcloud_redirectregex.redirectregex.replacement=`https://$${1}/remote.php/dav`"
+      # - "traefik.http.routers.uptime-kuma.middlewares=nextcloud_redirectregex"
+      # - "traefik.http.services.uptime-kuma.loadbalancer.server.port=443"
+      # - "traefik.http.services.uptime-kuma.loadbalancer.server.scheme=https" # else: Client sent an HTTP request to an HTTPS server.
+  
+networks:
+  proxy:
+    external: true
+
